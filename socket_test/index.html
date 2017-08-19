@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+<head>
+	<title>socket test</title>
+</head>
+<body>
+	<form action="#" onsubmit="myFunction()">
+		<input id="form_input" autocomplete="off" />
+		<button>Send</button>
+	</form>
+	
+	<h1>Messages</h1>
+	<ul id="messages"></ul>
+	
+	<script src="/socket.io/socket.io.js"></script>
+	
+	<script>
+		var socket = io();
+		var form_input = document.getElementById("form_input");
+		var messages = document.getElementById('messages');
+		
+		function myFunction()
+		{
+			socket.emit('chat message', form_input.value );
+			form_input.value = '';
+			
+			return false;
+		}
+		
+		socket.on('chat message', function(msg)
+		{
+			var node = document.createElement("li");
+			var textNode = document.createTextNode(msg);
+			
+			node.appendChild(textNode);
+			
+			messages.appendChild(node);
+		});
+	</script>
+</body>
+</html>
