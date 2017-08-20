@@ -4,7 +4,7 @@
 	<title>socket test</title>
 </head>
 <body>
-	<form action="#" onsubmit="myFunction()">
+	<form action="#" onsubmit="sendMessage()">
 		<input id="form_input" autocomplete="off" />
 		<button>Send</button>
 	</form>
@@ -19,10 +19,19 @@
 		var form_input = document.getElementById("form_input");
 		var messages = document.getElementById('messages');
 		
-		function myFunction()
+		function sendMessage()
 		{
 			socket.emit('chat message', form_input.value );
 			form_input.value = '';
+			
+			var buf = new ArrayBuffer(4);
+			var bufView = new Uint8Array(buf);
+			bufView[0] = 0xDE;
+			bufView[1] = 0xAD;
+			bufView[2] = 0xBE;
+			bufView[3] = 0xEF;
+			
+			socket.emit('binary message', buf );
 			
 			return false;
 		}

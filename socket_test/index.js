@@ -25,6 +25,15 @@ io.on('connection', function(socket)
 		
 		io.emit('chat message', msg);
 	});
+	
+	socket.on('binary message', function(buf)
+	{
+		var fs = require('fs');
+		
+		console.log(buf);
+		
+		fs.writeFile('file', buf);
+	});
 });
 
 http.listen(7777, function(){
