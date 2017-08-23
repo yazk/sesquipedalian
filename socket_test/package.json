@@ -4,6 +4,15 @@
   "description": "socket chat app",
   "dependencies": {
     "express": "^4.15.4",
+    "semver": "^5.4.1",
     "socket.io": "^2.0.3"
+  },
+  "engines": {
+    "node": ">=6.11.2"
+  },
+  "engineStrict": true,
+  "scripts": {
+    "requirements-check": "node check-version.js",
+    "postinstall": "npm run requirements-check"
   }
 }

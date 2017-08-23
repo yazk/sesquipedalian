@@ -171,27 +171,50 @@
 		}
 
 		window.onload = function init()
-		{
+		{	
 			try
 			{
 				// webkit shim
 				window.AudioContext = window.AudioContext || window.webkitAudioContext;
-				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia;
+				navigator.getUserMedia = navigator.getUserMedia || navigator.webkitGetUserMedia ; // || navigator.mediaDevices.getUserMedia
 				window.URL = window.URL || window.webkitURL;
 
 				audio_context = new AudioContext;
 				__log('Audio context set up.');
 				__log('navigator.getUserMedia ' + (navigator.getUserMedia ? 'available.' : 'not present!'));
+				
+				if ( !navigator.getUserMedia )
+				{
+					document.getElementById("mic").disabled = true;
+				}
 			}
 			catch (e)
 			{
 				alert('No web audio support in this browser!');
+				document.getElementById("mic").disabled = true;
 			}
 
-			navigator.getUserMedia({audio: true}, startUserMedia, function(e)
-			{
-				__log('No live audio input: ' + e + " " + e.message);
-			});
+			//navigator.getUserMedia({audio: true}, startUserMedia, function(e)
+			//{
+			//	__log('No live audio input: ' + e + " " + e.message);
+			//	
+			//	document.getElementById("mic").disabled = true;
+			//});
+			
+			navigator.mediaDevices.getUserMedia({audio: true}).then(
+				function(stream) 
+				{
+					/* use the stream */
+					startUserMedia(stream);
+				}
+			).catch(
+				function(err)
+				{
+					/* handle the error */
+					__log('No live audio input: ' + e + " " + e.message);
+					document.getElementById("mic").disabled = true;
+				}
+			);
 		};
 	</script>
 
