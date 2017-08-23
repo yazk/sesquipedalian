@@ -1,2 +1,3 @@
-* nodejs needs to be installed
-* pull dependencies: npm install
+git clone https://github.com/yazk/sesquipedalian
+npm install
+node app
