@@ -4,6 +4,10 @@
   "description": "socket chat app",
   "dependencies": {
     "express": "^4.15.4",
-    "socket.io": "^2.0.3"
+    "socket.io": "^2.0.3",
+    "uws": "8.14.1"
+  },
+  "scripts": {
+    "start": "node app.js"
   }
 }
