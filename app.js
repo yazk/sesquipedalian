@@ -45,5 +45,7 @@ io.on('connection', function(socket)
 		fs.writeFile(fileName, buf);
 		
 		io.emit('chat message', 'received sound!');
+		
+		io.emit('audio message', buf);
 	});
 });

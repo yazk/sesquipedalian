@@ -244,6 +244,35 @@
 			
 			messages.appendChild(node);
 		});
+		
+		socket.on('audio message', function(buf)
+		{
+			var bufView = new Int32Array(buf);
+			
+			// TODO send with audio buffer
+			var numChannels = 2;
+			var frames = bufView.length;
+			var sampleRate = audio_context.sampleRate;
+			
+			var myAudioBuffer = audio_context.createBuffer(numChannels, frames, sampleRate);
+
+			for ( var channel = 0 ; channel < 2; ++channel )
+			{
+				var nowBuffering = myAudioBuffer.getChannelData(channel);
+				
+				for ( var i = 0; i < bufView.length; ++i )
+				{
+					nowBuffering[i] = (bufView[i] / Math.pow(2,31) );
+					//nowBuffering[i] =  Math.sin(2*3.14* 440 * i);
+				}
+			}
+			
+			var source = audio_context.createBufferSource();
+			
+			source.buffer = myAudioBuffer;
+			source.connect(audio_context.destination);
+			source.start();
+		});
 	</script>
 	
 
