@@ -4,12 +4,16 @@ var server = require('http').createServer(app);
 var io = require('socket.io')(server);
 var port = process.env.PORT || 3000;
 
+var userQueue = [];
+
+// HTTP Server
 server.listen(port, function ()
 {
 	var addr = server.address();
 	console.log('app listening on http://' + addr.address + ':' + addr.port);
 });
 
+// Serve files
 app.get('/', function(req, res)
 {
 	res.sendFile(__dirname + '/index.html');
@@ -25,27 +29,51 @@ app.get('/recorder.js', function(req, res)
 	res.sendFile(__dirname + '/recorder.js');
 });
 
-io.on('connection', function(socket)
+// Socket logic
+function handleDisconnect()
+{
+	console.log(sessionId + ' disconnected');
+
+	for ( var i = 0; i < userQueue.length; ++i )
+	{
+		if ( userQueue[i] === sessionId )
+		{
+			userQueue.splice(i, 1);
+			break;
+		}
+	}
+
+	console.log('there are ' + userQueue.length + ' users in the queue');
+	console.log(userQueue);
+}
+
+function handleAudioMessage(buf)
+{
+	var fs = require('fs');
+	var fileName = 'sound_' + sessionId + '.wav';
+
+	//console.log(buf);
+	console.log('writing ' + fileName);
+	fs.writeFile(fileName, buf);
+
+	io.emit('chat message', 'received sound!');
+
+	io.emit('audio message', buf);
+}
+
+function handleConnection(socket)
 {
 	var sessionId = socket.id;
+
+	userQueue.push(sessionId);
+
 	console.log(sessionId + ' connected');
-	
-	socket.on('disconnect', function()
-	{
-		console.log(sessionId + ' disconnected');
-	});
-	
-	socket.on('audio message', function(buf)
-	{
-		var fs = require('fs');
-		var fileName = 'sound_' + sessionId + '.wav';
-		
-		//console.log(buf);
-		console.log('writing ' + fileName);
-		fs.writeFile(fileName, buf);
-		
-		io.emit('chat message', 'received sound!');
-		
-		io.emit('audio message', buf);
-	});
-});
+	console.log('there are ' + userQueue.length + ' users in the queue');
+	console.log(userQueue);
+
+	socket.on('disconnect', handleDisconnect());
+
+	socket.on('audio message', handleAudioMessage(buf));
+}
+
+io.on('connection', handleConnection(socket));
