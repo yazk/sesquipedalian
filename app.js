@@ -30,50 +30,46 @@ app.get('/recorder.js', function(req, res)
 });
 
 // Socket logic
-function handleDisconnect()
-{
-	console.log(sessionId + ' disconnected');
-
-	for ( var i = 0; i < userQueue.length; ++i )
-	{
-		if ( userQueue[i] === sessionId )
-		{
-			userQueue.splice(i, 1);
-			break;
-		}
-	}
-
-	console.log('there are ' + userQueue.length + ' users in the queue');
-	console.log(userQueue);
-}
-
-function handleAudioMessage(buf)
-{
-	var fs = require('fs');
-	var fileName = 'sound_' + sessionId + '.wav';
-
-	//console.log(buf);
-	console.log('writing ' + fileName);
-	fs.writeFile(fileName, buf);
-
-	io.emit('chat message', 'received sound!');
-
-	io.emit('audio message', buf);
-}
-
 function handleConnection(socket)
 {
-	var sessionId = socket.id;
+	var sessionId;
+
+	sessionId = socket.id;
 
 	userQueue.push(sessionId);
 
 	console.log(sessionId + ' connected');
-	console.log('there are ' + userQueue.length + ' users in the queue');
-	console.log(userQueue);
+	console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
 
-	socket.on('disconnect', handleDisconnect());
+	socket.on('disconnect', function ()
+	{
+		console.log(sessionId + ' disconnected');
+	
+		for ( var i = 0; i < userQueue.length; ++i )
+		{
+			if ( userQueue[i] === sessionId )
+			{
+				userQueue.splice(i, 1);
+				break;
+			}
+		}
+	
+		console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
+	});
 
-	socket.on('audio message', handleAudioMessage(buf));
+	socket.on('audio message', function (buf)
+	{
+		var fs = require('fs');
+		var fileName = 'sound_' + sessionId + '.wav';
+	
+		//console.log(buf);
+		console.log('writing ' + fileName);
+		fs.writeFile(fileName, buf);
+	
+		io.emit('chat message', 'received sound!');
+
+		io.emit('audio message', buf);
+	});
 }
 
-io.on('connection', handleConnection(socket));
+io.on('connection',  handleConnection );
