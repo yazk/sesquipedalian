@@ -29,47 +29,73 @@ app.get('/recorder.js', function(req, res)
 	res.sendFile(__dirname + '/recorder.js');
 });
 
-// Socket logic
-function handleConnection(socket)
+function serverInstance(socket)
 {
-	var sessionId;
+	var sc = new ServerConnection(socket);
+}
 
-	sessionId = socket.id;
+function ServerConnection(socket)
+{
+	this.socket = socket;
+	this.sessionId = socket.id;
+	
+	var curServerConnection = this;
 
-	userQueue.push(sessionId);
-
-	console.log(sessionId + ' connected');
-	console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
+	curServerConnection.onConnect();
 
 	socket.on('disconnect', function ()
 	{
-		console.log(sessionId + ' disconnected');
-	
-		for ( var i = 0; i < userQueue.length; ++i )
-		{
-			if ( userQueue[i] === sessionId )
-			{
-				userQueue.splice(i, 1);
-				break;
-			}
-		}
-	
-		console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
+		curServerConnection.onDisconnect();
 	});
 
 	socket.on('audio message', function (buf)
 	{
-		var fs = require('fs');
-		var fileName = 'sound_' + sessionId + '.wav';
-	
-		//console.log(buf);
-		console.log('writing ' + fileName);
-		fs.writeFile(fileName, buf);
-	
-		io.emit('chat message', 'received sound!');
-
-		io.emit('audio message', buf);
+		curServerConnection.onAudioMessage(buf);
 	});
 }
 
-io.on('connection',  handleConnection );
+ServerConnection.prototype.onConnect = function()
+{
+	var sessionId = this.sessionId;
+
+	userQueue.push(this.sessionId);
+
+	console.log(this.sessionId + ' connected');
+	console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
+}
+
+ServerConnection.prototype.onDisconnect = function()
+{
+	var sessionId = this.sessionId;
+
+	console.log(sessionId + ' disconnected');
+	
+	for ( var i = 0; i < userQueue.length; ++i )
+	{
+		if ( userQueue[i] === sessionId )
+		{
+			userQueue.splice(i, 1);
+			break;
+		}
+	}
+
+	console.log('there are ' + userQueue.length + ' users in the queue: ' + userQueue + '\n');
+}
+
+ServerConnection.prototype.onAudioMessage = function(buf)
+{
+	var sessionId = this.sessionId;
+
+	var fs = require('fs');
+	var fileName = 'sound_' + sessionId + '.wav';
+
+	//console.log(buf);
+	console.log('writing ' + fileName);
+	fs.writeFile(fileName, buf);
+
+	io.emit('chat message', 'received sound!');
+
+	io.emit('audio message', buf);
+}
+
+io.on('connection', serverInstance );
